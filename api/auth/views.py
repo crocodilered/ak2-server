@@ -2,6 +2,7 @@ from flask import Blueprint, request
 
 from libs.http import *
 from api import bcrypt, db
+from api.decorators import user_logged_in
 from libs.view import View
 from models.user import User
 
@@ -86,25 +87,19 @@ class LogoutAPI(View):
     """
     Logout resource.
     """
+    @user_logged_in
     def post(self):
-        resp = self.PERMISSION_DENIED_RESP  # default value
-
-        if request.user is not None:
-            request.user.authorized = False
-            db.save(request.user)
-            resp = HTTP_204_NO_CONTENT
-
-        return self.make_response(resp)
+        request.user.authorized = False
+        db.save(request.user)
+        return self.make_response(HTTP_204_NO_CONTENT)
 
 
 class StatusAPI(View):
     """
     Current user props resource.
     """
+    @user_logged_in
     def get(self):
-        if request.user is None:
-            return self.make_response(self.PERMISSION_DENIED_RESP)
-
         return self.make_response({'user': request.user})
 
 
@@ -112,13 +107,11 @@ class PasswordApi(View):
     """
     Set new user password resource.
     """
+    @user_logged_in
     def post(self):
         params = request.get_json()
         current_pw = params.get('current')
         candidate_pw = params.get('candidate')
-
-        if request.user is None:
-            return self.make_response(self.PERMISSION_DENIED_RESP)
 
         # check current password
         if not bcrypt.check_password_hash(request.user.password, current_pw):
