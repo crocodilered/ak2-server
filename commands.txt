@@ -1,0 +1,7 @@
+https://github.com/realpython/flask-jwt-auth/
+
+# docker create -v /var/lib/postgresql/data --name ak2pg alpine
+docker run -p 5432:5432 --name ak2 -e POSTGRES_PASSWORD=ak2 -d --volumes-from ak2pg postgres:12.1
+docker run -p 8080:8080 adminer
+
+docker start ak2
