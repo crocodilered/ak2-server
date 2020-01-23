@@ -1,9 +1,6 @@
 import os
 
 
-basedir = os.path.abspath(os.path.dirname(__file__))
-
-
 class BaseConfig:
     """ Base configuration. """
     SECRET_KEY = os.getenv('AK2_SECRET_KEY', 'SECRET_KEY')
