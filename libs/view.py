@@ -19,15 +19,15 @@ class View(MethodView):
         elif type(resp) is dict:
             response_code = resp['_code'] if '_code' in resp else HTTP_200_OK
 
-            d = {}
+            response_data = {}
             for k in resp:
                 if k != '_code':
                     item = resp[k]
                     if type(item) is list:
-                        d[k] = []
+                        response_data[k] = []
                         for o in item:
-                            d[k].append(serialize(o))
+                            response_data[k].append(serialize(o))
                     else:
-                        d[k] = serialize(item)
+                        response_data[k] = serialize(item)
 
-            return jsonify(d), response_code
+            return jsonify(response_data), response_code
