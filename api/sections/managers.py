@@ -2,7 +2,7 @@
 DB manager for Section model.
 """
 
-from db.base import DbManager
+from libs.db import DbManager
 from api.sections.models import Section
 
 
