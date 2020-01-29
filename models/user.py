@@ -1,5 +1,4 @@
-from .base import BaseModel
-from api.auth import encode_password
+from . import BaseModel
 
 
 class User(BaseModel):
