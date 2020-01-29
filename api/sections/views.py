@@ -1,11 +1,12 @@
 from flask import Blueprint, request, abort
 
 from api import db
+from api.shortcuts import db_get_or_404
 from libs.view import View
 from libs.http import (
     HTTP_204_NO_CONTENT,
-    HTTP_404_NOT_FOUND,
-    HTTP_500_INTERNAL_SERVER_ERROR
+    HTTP_400_BAD_REQUEST,
+    HTTP_500_INTERNAL_SERVER_ERROR,
 )
 from models.section import Section
 
@@ -23,19 +24,18 @@ class SectionsListApi(View):
     @user_is_admin
     def post(self):
         """ Post new record to database """
-        params = request.get_json()
-        response = HTTP_404_NOT_FOUND
+        data = request.get_json().get('section')
 
-        if 'section' in params:
-            data = params.get('section')
-            section = Section(**data)
-            section = db.save(section)
+        if data is None:
+            abort(HTTP_400_BAD_REQUEST)
 
-            # Guard.
-            if section is None:
-                abort(HTTP_500_INTERNAL_SERVER_ERROR)
+        section = Section(**data)
+        db.save(section)
 
-            response = {'section': section}
+        if section is None:
+            abort(HTTP_500_INTERNAL_SERVER_ERROR)
+
+        response = {'section': section}
 
         return self.make_response(response)
 
@@ -43,22 +43,28 @@ class SectionsListApi(View):
 class SectionsRetrieveApi(View):
     @user_is_admin
     def get(self, section_id):
-        section = db.get(Section, id=section_id)
-        resp = {'section': section} if section else HTTP_404_NOT_FOUND
-        return self.make_response(resp)
+        section = db_get_or_404(Section, id=section_id)
+        return self.make_response({'section': section})
 
     @user_is_admin
-    def put(self, section_id):
-        params = request.get_json()
-        response = HTTP_404_NOT_FOUND
+    def patch(self, section_id):
+        data = request.get_json().get('section')
 
-        if 'section' in params:
-            data = params['section']
-            section = Section(**data)
-            db.save(section)
-            response = {'section': section}
+        if (
+            data is None
+            or (data.get('id') is not None and data['id'] != section_id)
+        ):
+            abort(HTTP_400_BAD_REQUEST)
 
-        return self.make_response(response)
+        section = db_get_or_404(Section, id=section_id)
+
+        for attr in Section.FIELDS:
+            if data.get(attr) is not None:
+                setattr(section, attr, data[attr])
+
+        db.save(section)
+
+        return self.make_response({'section': section})
 
     @user_is_admin
     def delete(self, section_id):
@@ -100,7 +106,7 @@ sections_blueprint.add_url_rule(
 
 sections_blueprint.add_url_rule(
     '/<int:section_id>/',
-    methods=['GET', 'PUT', 'DELETE'],
+    methods=['GET', 'PATCH', 'DELETE'],
     view_func=SectionsRetrieveApi.as_view('sections_retrieve_view')
 )
 

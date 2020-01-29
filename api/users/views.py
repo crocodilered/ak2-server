@@ -1,14 +1,15 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, abort
 
 from api import db
+from api.shortcuts import db_get_or_404
 from libs.view import View
-from libs.http import HTTP_404_NOT_FOUND
+from libs.http import HTTP_400_BAD_REQUEST
 from models.user import User
 
 from api.decorators import user_is_admin, user_is_admin_or_self
 
 
-class UserIndexApi(View):
+class UsersListApi(View):
     @user_is_admin
     def get(self):
         """ List """
@@ -17,40 +18,38 @@ class UserIndexApi(View):
         })
 
 
-class UserDetailsApi(View):
+class UsersRetrieveApi(View):
     """
     User model Resource.
     """
     @user_is_admin_or_self
     def get(self, user_id):
-        user = db.get(User, id=user_id)
-        resp = {'user': user} if user else HTTP_404_NOT_FOUND
-        return self.make_response(resp)
+        user = db_get_or_404(User, id=user_id)
+        return self.make_response({'user': user})
 
     @user_is_admin_or_self
-    def put(self, user_id):
+    def patch(self, user_id):
         params = request.get_json()
-        user_data = params['user']
+        data = params.get('user')
 
-        user = db.get(User, id=user_id)
+        if (
+            data is None
+            or (data.get('id') is not None and data['id'] != user_id)
+            or data.get('email')
+            or data.get('password')
+        ):
+            abort(HTTP_400_BAD_REQUEST)
 
-        if user_data.get('name') is not None:
-            user.name = user_data['name']
+        user = db_get_or_404(User, id=user_id)
 
-        if user_data.get('email') is not None:
-            user.email = user_data['email']
-
-        if user_data.get('password') is not None:
-            user.set_password(user_data['password'])
+        for attr in User.FIELDS:
+            if data.get(attr) is not None:
+                setattr(user, attr, data[attr])
 
         db.save(user)
 
         return self.make_response({'user': user})
 
-
-# Define the API resources
-users_list_view = UserIndexApi.as_view('users_index_view')
-users_details_view = UserDetailsApi.as_view('users_details_view')
 
 # Add Rules for API Endpoints
 users_blueprint = Blueprint('users', __name__)
@@ -58,11 +57,11 @@ users_blueprint = Blueprint('users', __name__)
 users_blueprint.add_url_rule(
     '/',
     methods=['GET'],
-    view_func=users_list_view,
+    view_func=UsersListApi.as_view('users_list_view'),
 )
 
 users_blueprint.add_url_rule(
     '/<int:user_id>/',
-    methods=['GET', 'PUT'],
-    view_func=users_details_view
+    methods=['GET', 'PATCH'],
+    view_func=UsersRetrieveApi.as_view('users_retrieve_view')
 )
