@@ -8,7 +8,7 @@ from libs.http import (
     HTTP_400_BAD_REQUEST,
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
-from models.section import Section
+from api.sections.models import Section
 
 from api.decorators import user_is_admin
 

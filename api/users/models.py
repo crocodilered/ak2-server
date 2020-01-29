@@ -1,4 +1,4 @@
-from . import BaseModel
+from libs.models import BaseModel
 
 
 class User(BaseModel):
@@ -47,5 +47,5 @@ class User(BaseModel):
 
     @staticmethod
     def get_db_manager():
-        from db.user import UserDb
+        from api.users.managers import UserDb
         return UserDb

@@ -1,8 +1,8 @@
-from .base import BaseDb
-from models.user import User
+from libs.db import DbManager
+from api.users.models import User
 
 
-class UserDb(BaseDb):
+class UserDb(DbManager):
 
     MODEL = User
 

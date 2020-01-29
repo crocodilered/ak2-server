@@ -2,11 +2,11 @@
 DB manager for Section model.
 """
 
-from .base import BaseDb
-from models.section import Section
+from db.base import DbManager
+from api.sections.models import Section
 
 
-class SectionDb(BaseDb):
+class SectionDbManager(DbManager):
 
     MODEL = Section
 

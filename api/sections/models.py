@@ -1,4 +1,4 @@
-from . import BaseModel
+from libs.models import BaseModel
 
 
 class Section(BaseModel):
@@ -49,5 +49,5 @@ class Section(BaseModel):
 
     @staticmethod
     def get_db_manager():
-        from db.section import SectionDb
-        return SectionDb
+        from api.sections.managers import SectionDbManager
+        return SectionDbManager

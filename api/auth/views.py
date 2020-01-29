@@ -4,7 +4,7 @@ from libs.http import *
 from api import bcrypt, db
 from api.decorators import user_logged_in
 from libs.view import View
-from models.user import User
+from api.users.models import User
 
 from . import encode_auth_token, encode_password
 

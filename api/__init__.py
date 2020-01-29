@@ -1,4 +1,4 @@
-from db import Db
+from libs.db import Db
 from flask import Flask
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt

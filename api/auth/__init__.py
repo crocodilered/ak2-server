@@ -50,7 +50,7 @@ def apply_user_to_request():
     # Default value
     request.user = None
 
-    from models.user import User
+    from api.users.models import User
     from api.auth import decode_auth_token
 
     auth_header = request.headers.get('Authorization')

@@ -4,7 +4,7 @@ from api import db
 from api.shortcuts import db_get_or_404
 from libs.view import View
 from libs.http import HTTP_400_BAD_REQUEST
-from models.user import User
+from api.users.models import User
 
 from api.decorators import user_is_admin, user_is_admin_or_self
 
