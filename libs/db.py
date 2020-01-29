@@ -21,7 +21,7 @@ class Db:
             db_manager = t.get_db_manager()
             return db_manager.get(self.conn, self.schema, **kwargs)
 
-    def list(self, t, **kwargs):
+    def list(self, t, *args, **kwargs):
         if hasattr(t, 'get_db_manager'):
             db_manager = t.get_db_manager()
             return db_manager.list(self.conn, self.schema, **kwargs)
