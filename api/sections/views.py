@@ -30,7 +30,7 @@ class SectionsListApi(View):
             abort(HTTP_400_BAD_REQUEST)
 
         section = Section(**data)
-        db.save(section)
+        section = db.save(section)
 
         if section is None:
             abort(HTTP_500_INTERNAL_SERVER_ERROR)
