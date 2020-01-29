@@ -49,7 +49,7 @@ class UserDetailsApi(View):
 
 
 # Define the API resources
-user_index_view = UserIndexApi.as_view('user_index_view')
+users_list_view = UserIndexApi.as_view('users_index_view')
 users_details_view = UserDetailsApi.as_view('users_details_view')
 
 # Add Rules for API Endpoints
@@ -58,7 +58,7 @@ users_blueprint = Blueprint('users', __name__)
 users_blueprint.add_url_rule(
     '/',
     methods=['GET'],
-    view_func=user_index_view,
+    view_func=users_list_view,
 )
 
 users_blueprint.add_url_rule(

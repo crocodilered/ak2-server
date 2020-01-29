@@ -1,4 +1,7 @@
-class Section:
+from .base import BaseModel
+
+
+class Section(BaseModel):
     """
     Section item model.
         id - идентификатор
@@ -9,12 +12,12 @@ class Section:
 
     FIELDS = ('parent_id', 'title', 'enabled', 'order_key', 'id')
 
-    def __init__(self, *args, **kwargs):
-        self.id = kwargs.get('id', None)
-        self.parent_id = kwargs.get('parent_id', 0)
-        self.title = kwargs.get('title', '-')
-        self.enabled = kwargs.get('enabled', False)
-        self.order_key = kwargs.get('order_key', None)
+    def __init__(self, **kwargs):
+        self.id = kwargs.get('id')
+        self.parent_id = kwargs.get('parent_id') or 0
+        self.title = kwargs.get('title') or ''
+        self.enabled = kwargs.get('enabled') or False
+        self.order_key = kwargs.get('order_key')
 
     def to_dict(self):
         return {

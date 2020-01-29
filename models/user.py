@@ -1,29 +1,22 @@
-class User:
+from .base import BaseModel
+from api.auth import encode_password
+
+
+class User(BaseModel):
     """
     User Model for storing users related details
     """
-    id = None           # идентификатор
-    name = None         # имя
-    email = None        # эл. почта
-    password = None     # пароль (шифрованный)
-    authorized = None   # флаг "пользователь в системе"
-    enabled = None      # флаг "пользователь заблокирован"
-    admin = None        # флаг "пользователь является админом"
 
     FIELDS = ('name', 'email', 'password', 'authorized', 'enabled', 'admin', 'id')
 
-    def __init__(self, name, email, password, authorized, enabled=True, admin=False):
-        self.id = None
-        self.name = name
-        self.email = email
-        self.password = password
-        self.authorized = authorized
-        self.enabled = enabled
-        self.admin = admin
-
-    def set_password(self, password):
-        from api.auth import encode_password
-        self.password = encode_password(password)
+    def __init__(self, **kwargs):
+        self.id = kwargs.get('id')
+        self.name = kwargs.get('name') or ''
+        self.email = kwargs.get('email') or ''
+        self.password = kwargs.get('password') or ''
+        self.authorized = kwargs.get('authorized') or False
+        self.enabled = kwargs.get('enabled') or False
+        self.admin = kwargs.get('admin') or False
 
     def to_dict(self):
         return {
@@ -33,18 +26,25 @@ class User:
         }
 
     @staticmethod
-    def from_row(raw):
+    def from_row(row):
         """ Конструктор объекта на основе данных, прибывших их БД """
         user = None
 
-        if type(raw) is tuple and len(raw) == 7:
-            user = User(raw[0], raw[1], raw[2], raw[3], raw[4], raw[5])
-            user.id = raw[6]
+        if type(row) is tuple and len(row) == 7:
+            user = User(
+                id=row[6],
+                name=row[0],
+                email=row[1],
+                password=row[2],
+                authorized=row[3],
+                enabled=row[4],
+                admin=row[5]
+            )
 
         return user
 
     def to_row(self):
-        return [self.name, self.email, self.password, self.authorized, self.enabled, self.admin, self.id]
+        return self.name, self.email, self.password, self.authorized, self.enabled, self.admin, self.id,
 
     @staticmethod
     def get_db_manager():

@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, abort
 
 from libs.http import *
 from api import bcrypt, db
@@ -6,7 +6,7 @@ from api.decorators import user_logged_in
 from libs.view import View
 from models.user import User
 
-from . import encode_auth_token
+from . import encode_auth_token, encode_password
 
 
 class RegisterAPI(View):
@@ -30,14 +30,14 @@ class RegisterAPI(View):
 
         # Can create new users now
         user = User(
-            params.get('name'),
-            params.get('email'),
-            '',
-            True,
-            True,
-            False
+            name=params.get('name'),
+            email=params.get('email'),
+            password=encode_password(params.get('password')),
+            authorized=True,
+            enabled=True,
+            admin=False
         )
-        user.set_password(params.get('password'))
+
         db.save(user)
 
         # Generate the auth.py token
@@ -115,9 +115,9 @@ class PasswordApi(View):
 
         # check current password
         if not bcrypt.check_password_hash(request.user.password, current_pw):
-            return self.make_response({'message': 'password-mismatched'})
+            abort(HTTP_403_FORBIDDEN)
 
-        request.user.set_password(candidate_pw)
+        request.user.password = encode_password(candidate_pw)
         db.save(request.user)
 
         return self.make_response(HTTP_204_NO_CONTENT)
