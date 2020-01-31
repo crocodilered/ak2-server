@@ -1,90 +1,37 @@
-from libs.db import DbManager
+from libs.managers import BaseManager
 from api.users.models import User
 
 
-class UserDb(DbManager):
+class UserManager(BaseManager):
 
-    MODEL = User
-
-    @staticmethod
-    def get(conn, schema, *args, **kwargs):
-        sql = f'''
-            SELECT name, email, password, authorized, enabled, admin, id
-            FROM {schema}.user
-            WHERE 
-        '''
-
-        cursor = conn.cursor()
-
-        if 'id' in kwargs:
-            cursor.execute(sql + 'id = %s', (kwargs.get('id'),))
-
-        elif 'email' in kwargs:
-            cursor.execute(sql + 'email = %s', (kwargs.get('email'),))
-
-        else:
-            raise Exception('Bad params')
-
-        row = cursor.fetchone()
-
-        if row is not None:
-            cursor.close()
-            return User.from_row(row)
+    class Meta:
+        model = User
+        table = 'user'
 
     @staticmethod
-    def list(conn, schema, *args, **kwargs):
-        sql = f'''
-            SELECT name, email, password, authorized, enabled, admin, id
-            FROM {schema}.user
-            ORDER BY email 
-        '''
+    def get_by_email(conn, schema, **kwargs):
+        """ Get record by email """
 
-        cursor = conn.cursor()
-        cursor.execute(sql)
-        rows = cursor.fetchall()
-        cursor.close()
+        meta_table = UserManager.Meta.table
+        meta_model = UserManager.Meta.model
+        meta_fields = meta_model.Meta.fields
 
-        return [User.from_row(row) for row in rows]
+        email = kwargs.get('email')
+        result = None
 
-    @staticmethod
-    def save(conn, schema, o, **kwargs):
-        cursor = conn.cursor()
+        with conn.cursor() as cur:
+            cur.execute(
+                f'''
+                    SELECT {','.join(meta_fields)}, id
+                    FROM {schema}.{meta_table}
+                    WHERE email = %s
+                ''',
+                (email,)
+            )
 
-        if o.id is None:
-            sql = f'''
-                INSERT INTO {schema}.user (name, email, password, authorized, enabled, admin)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                RETURNING id
-            '''
-            row = o.to_row()
-            row.pop()
+            raw = cur.fetchone()
 
-            try:
-                cursor.execute(sql, row)
-                o.id = cursor.fetchone()[0]
-            except:
-                conn.rollback()
+            if raw:
+                result = meta_model.from_raw(raw)
 
-        else:
-            sql = f'''
-                UPDATE {schema}.user SET
-                    name = %s, 
-                    email = %s,
-                    password = %s, 
-                    authorized = %s, 
-                    enabled = %s,
-                    admin = %s
-                WHERE id = %s
-            '''
-
-            row = o.to_row()
-
-            try:
-                cursor.execute(sql, row)
-            except:
-                conn.rollback()
-
-        cursor.close()
-        conn.commit()
-
-        return o
+        return result

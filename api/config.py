@@ -6,6 +6,7 @@ class BaseConfig:
     SECRET_KEY = os.getenv('AK2_SECRET_KEY', 'SECRET_KEY')
     DATABASE_URI = os.getenv('AK2_DATABASE_URI')
     DATABASE_SCHEMA = os.getenv('AK2_DATABASE_SCHEMA')
+    LANGUAGES = ['en', 'ru']
 
 
 class DevelopmentConfig(BaseConfig):

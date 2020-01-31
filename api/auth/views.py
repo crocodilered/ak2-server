@@ -1,10 +1,10 @@
 from flask import Blueprint, request, abort
 
-from libs.http import *
 from api import bcrypt, db
 from api.decorators import user_logged_in
-from libs.view import View
 from api.users.models import User
+from libs.views import View
+from libs.http import *
 
 from . import encode_auth_token, encode_password
 
@@ -25,7 +25,7 @@ class RegisterAPI(View):
             return self.make_response(HTTP_400_BAD_REQUEST)
 
         # Check if users already exists
-        if db.get(User, email=params.get('email')) is not None:
+        if db.run(User, 'get_by_email', email=params.get('email')) is not None:
             return self.make_response({'message': 'user-already-exists'})
 
         # Can create new users now
@@ -59,7 +59,8 @@ class LoginAPI(View):
 
         # Try to get users with given email.
         # No need to check email format here.
-        user = db.get(User, email=params.get('email'))
+        # user = db.get(User, email=params.get('email'))
+        user = db.run(User, 'get_by_email', email=params.get('email'))
 
         if not user:
             return self.make_response({'message': 'user-doesnt-exist'})

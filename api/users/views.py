@@ -2,7 +2,7 @@ from flask import Blueprint, request, abort
 
 from api import db
 from api.shortcuts import db_get_or_404
-from libs.view import View
+from libs.views import View
 from libs.http import HTTP_400_BAD_REQUEST
 from api.users.models import User
 
@@ -42,9 +42,9 @@ class UsersRetrieveApi(View):
 
         user = db_get_or_404(User, id=user_id)
 
-        for attr in User.FIELDS:
-            if data.get(attr) is not None:
-                setattr(user, attr, data[attr])
+        for i in User.Meta.fields:
+            if data.get(i) is not None:
+                setattr(user, i, data[i])
 
         db.save(user)
 

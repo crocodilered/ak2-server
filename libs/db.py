@@ -1,4 +1,31 @@
-class Db:
+from api.users.managers import UserManager
+from api.users.models import User
+
+from api.sections.managers import SectionManager
+from api.sections.models import Section
+
+from api.videos.managers import VideoManager
+from api.videos.models import Video
+
+
+def get_manager(model):
+
+    t = model
+
+    if type(model) != type:
+        t = type(model)
+
+    if t == Section:
+        return SectionManager
+
+    if t == User:
+        return UserManager
+
+    if t == Video:
+        return VideoManager
+
+
+class Db(object):
     """
     Database singleton's class.
     """
@@ -6,43 +33,24 @@ class Db:
         self.conn = conn
         self.schema = schema
 
-    def save(self, o, **kwargs):
-        if hasattr(o, 'get_db_manager'):
-            db_manager = o.get_db_manager()
-            return db_manager.save(self.conn, self.schema, o, **kwargs)
+    def save(self, model_obj, **kwargs):
+        manager = get_manager(model_obj)
+        return manager.save(self.conn, self.schema, model_obj, **kwargs)
 
-    def delete(self, o, **kwargs):
-        if hasattr(o, 'get_db_manager'):
-            db_manager = o.get_db_manager()
-            return db_manager.delete(self.conn, self.schema, o, **kwargs)
+    def delete(self, model_cls, **kwargs):
+        manager = get_manager(model_cls)
+        return manager.delete(self.conn, self.schema, **kwargs)
 
-    def get(self, t, **kwargs):
-        if hasattr(t, 'get_db_manager'):
-            db_manager = t.get_db_manager()
-            return db_manager.get(self.conn, self.schema, **kwargs)
+    def get(self, model_cls, **kwargs):
+        manager = get_manager(model_cls)
+        return manager.get(self.conn, self.schema, **kwargs)
 
-    def list(self, t, *args, **kwargs):
-        if hasattr(t, 'get_db_manager'):
-            db_manager = t.get_db_manager()
-            return db_manager.list(self.conn, self.schema, **kwargs)
+    def list(self, model_cls, **kwargs):
+        manager = get_manager(model_cls)
+        return manager.list(self.conn, self.schema, **kwargs)
 
-
-class DbManager:
-    """
-    Abstract model database manager
-    """
-    @staticmethod
-    def list(conn, schema, **kwargs):
-        raise Exception('Method must be implemented by child.')
-
-    @staticmethod
-    def get(conn, schema, **kwargs):
-        raise Exception('Method must be implemented by child.')
-
-    @staticmethod
-    def save(conn, schema, o, **kwargs):
-        raise Exception('Method must be implemented by child.')
-
-    @staticmethod
-    def delete(conn, schema, o, **kwargs):
-        raise Exception('Method must be implemented by child.')
+    def run(self, model_cls, command, **kwargs):
+        """ Run custom manager method. """
+        manager = get_manager(model_cls)
+        manager_attr = getattr(manager, command)
+        return manager_attr(self.conn, self.schema, **kwargs)

@@ -32,3 +32,7 @@ app.register_blueprint(users_blueprint, url_prefix='/users')
 
 from api.sections.views import sections_blueprint
 app.register_blueprint(sections_blueprint, url_prefix='/sections')
+
+from api.videos.views import videos_blueprint
+app.register_blueprint(videos_blueprint, url_prefix='/videos')
+

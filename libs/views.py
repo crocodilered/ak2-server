@@ -1,16 +1,35 @@
-from flask import jsonify
+from flask import jsonify, request
 from flask.views import MethodView
+from api import app
 from libs.http import HTTP_200_OK
 
 
 class View(MethodView):
+    @property
+    def lang(self):
+        app_langs = app.config.get('LANGUAGES')
+
+        for client_lang in request.accept_languages:
+            if client_lang[0] == '*':
+                return None
+            else:
+                for app_lang in app_langs:
+                    prefix = f'{app_lang}-'
+                    if app_lang == client_lang[0] or prefix == client_lang[0][:3]:
+                        return app_lang
+
+        return app_langs[0]
+
+    def _detect_lang(self):
+        """ Detect client's lang. """
+        # Detect if accept all the languages
+
+
     def make_response(self, resp):
-        """
-        Make api response from given data.
-        """
+        """ Make api response from given data. """
 
         def serialize(obj):
-            return obj.to_dict() if hasattr(obj, 'to_dict') else obj
+            return obj.to_dict(self.lang) if hasattr(obj, 'to_dict') else obj
 
         if type(resp) is int:
             # http code only

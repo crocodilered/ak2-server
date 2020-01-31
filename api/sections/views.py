@@ -2,7 +2,7 @@ from flask import Blueprint, request, abort
 
 from api import db
 from api.shortcuts import db_get_or_404
-from libs.view import View
+from libs.views import View
 from libs.http import (
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
@@ -58,7 +58,7 @@ class SectionsRetrieveApi(View):
 
         section = db_get_or_404(Section, id=section_id)
 
-        for attr in Section.FIELDS:
+        for attr in Section.Meta.fields:
             if data.get(attr) is not None:
                 setattr(section, attr, data[attr])
 
