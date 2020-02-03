@@ -1,12 +1,15 @@
 from flask import Blueprint, request, abort
 
-from api import db
+import os
+from api import app, db
 from api.shortcuts import db_get_or_404
-from api.decorators import user_is_admin, user_logged_in
+from api.decorators import user_is_admin, user_is_subscriber
 from libs.views import View
+from libs.video import VideoHandler
 from libs.http import (
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
+    HTTP_404_NOT_FOUND,
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
 from .models import Video
@@ -19,7 +22,7 @@ class VideosListApi(View):
             'enabled': False
         }
         return self.make_response({
-            'videos': db.list(Video, **params)
+            'videos': db.list(VideoHandler, **params)
         })
 
     @user_is_admin
@@ -30,7 +33,7 @@ class VideosListApi(View):
         if data is None or data.get('id') is not None:
             abort(HTTP_400_BAD_REQUEST)
 
-        video = Video(**data)
+        video = VideoHandler(**data)
 
         if db.save(video) is None:
             abort(HTTP_500_INTERNAL_SERVER_ERROR)
@@ -43,7 +46,7 @@ class VideosListApi(View):
 class VideosRetrieveApi(View):
     @user_is_admin
     def get(self, video_id):
-        video = db_get_or_404(Video, id=video_id)
+        video = db_get_or_404(VideoHandler, id=video_id)
         return self.make_response({'video': video})
 
     @user_is_admin
@@ -56,7 +59,7 @@ class VideosRetrieveApi(View):
         ):
             abort(HTTP_400_BAD_REQUEST)
 
-        video = db_get_or_404(Video, id=video_id)
+        video = db_get_or_404(VideoHandler, id=video_id)
 
         # Fill model with data
         for attr in ('section_id', 'media_fp', 'enabled', 'order_key'):
@@ -73,20 +76,28 @@ class VideosRetrieveApi(View):
 
     @user_is_admin
     def delete(self, video_id):
-        if db.delete(Video, id=video_id) is False:
+        if db.delete(VideoHandler, id=video_id) is False:
             abort(HTTP_500_INTERNAL_SERVER_ERROR)
 
         return self.make_response(HTTP_204_NO_CONTENT)
 
 
 class VideosShowApi(View):
-    """ Show view """
+    """ Show video view """
 
-    @user_logged_in
-    def get(self):
-        return self.make_response({
-            'show': None
-        })
+    @user_is_subscriber
+    def get(self, video_id):
+        video = db_get_or_404(Video, id=video_id)
+
+        file_path = os.path.join(app.config.get('VIDEO_PATH'), video.media_fp)
+
+        if not(video.enabled and os.path.exists(file_path)):
+            abort(HTTP_404_NOT_FOUND)
+
+        vh = VideoHandler(file_path)
+        start, end = vh.get_range(request)
+
+        return vh.get_response(start, end)
 
 
 # Add Rules for API Endpoints
@@ -105,7 +116,7 @@ videos_blueprint.add_url_rule(
 )
 
 videos_blueprint.add_url_rule(
-    '/_show/',
+    '/<int:video_id>/_show/',
     methods=['GET'],
     view_func=VideosShowApi.as_view('videos_show_view'),
 )

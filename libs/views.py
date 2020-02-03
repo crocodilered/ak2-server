@@ -24,7 +24,6 @@ class View(MethodView):
         """ Detect client's lang. """
         # Detect if accept all the languages
 
-
     def make_response(self, resp):
         """ Make api response from given data. """
 
