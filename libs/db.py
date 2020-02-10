@@ -7,6 +7,9 @@ from api.sections.models import Section
 from api.videos.managers import VideoManager
 from api.videos.models import Video
 
+from api.places.managers import PlaceManager
+from api.places.models import Place
+
 
 def get_manager(model):
 
@@ -23,6 +26,9 @@ def get_manager(model):
 
     if t == Video:
         return VideoManager
+
+    if t == Place:
+        return PlaceManager
 
 
 class Db(object):

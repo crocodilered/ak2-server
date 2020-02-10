@@ -17,7 +17,6 @@ CORS(app)
 # Wake up bcrypt
 bcrypt = Bcrypt(app)
 
-
 # TODO: think to move this somewhere.
 # Wake up database
 db = Db(psycopg2.connect(app.config.get('DATABASE_URI')), app.config.get('DATABASE_SCHEMA'))
@@ -35,4 +34,7 @@ app.register_blueprint(sections_blueprint, url_prefix='/sections')
 
 from api.videos.views import videos_blueprint
 app.register_blueprint(videos_blueprint, url_prefix='/videos')
+
+from api.places.views import places_blueprint
+app.register_blueprint(places_blueprint, url_prefix='/places')
 
